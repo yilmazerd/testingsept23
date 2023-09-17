@@ -1,0 +1,56 @@
+# We first connect to the Aurora DB cluster and fetch the existing parameter group settings.
+# We take note of the current time as a restore point.
+# We initiate a point-in-time restore to create a new cluster.
+# We then fetch the parameter group settings of the restored cluster.
+# Finally, we compare the parameter group settings of the new cluster with that of the original cluster to check if they are preserved.
+#
+
+
+import boto3
+from datetime import datetime, timedelta
+import time
+
+# Initialize a session using Amazon RDS
+client = boto3.client('rds')
+
+# Step 1: Fetch the existing parameter group settings of the original cluster
+original_cluster_id = 'your-original-cluster-id'
+response = client.describe_db_clusters(DBClusterIdentifier=original_cluster_id)
+original_parameter_group = response['DBClusters'][0]['DBClusterParameterGroup']
+
+# Step 2: Take note of the current time as a restore point
+restore_time = datetime.utcnow() - timedelta(minutes=5)
+
+# Step 3: Initiate a point-in-time restore to create a new cluster
+new_cluster_id = 'your-new-cluster-id'
+client.restore_db_cluster_to_point_in_time(
+    DBClusterIdentifier=new_cluster_id,
+    SourceDBClusterIdentifier=original_cluster_id,
+    RestoreToTime=restore_time,
+    UseLatestRestorableTime=True,
+    Engine='aurora'
+)
+
+# Waiting for the new cluster to be available
+print("Waiting for new cluster to be available...")
+while True:
+    response = client.describe_db_clusters(DBClusterIdentifier=new_cluster_id)
+    if response['DBClusters'][0]['Status'] == 'available':
+        break
+    time.sleep(60)
+
+# Step 4: Fetch the parameter group settings of the restored cluster
+response = client.describe_db_clusters(DBClusterIdentifier=new_cluster_id)
+new_parameter_group = response['DBClusters'][0]['DBClusterParameterGroup']
+
+# Step 5: Compare the parameter group settings of the new cluster with that of the original cluster
+if original_parameter_group == new_parameter_group:
+    print("Parameter and Settings Preservation: Test Passed!")
+else:
+    print("Parameter and Settings Preservation: Test Failed!")
+
+# Cleanup: Delete the new cluster
+client.delete_db_cluster(
+    DBClusterIdentifier=new_cluster_id,
+    SkipFinalSnapshot=True
+)
