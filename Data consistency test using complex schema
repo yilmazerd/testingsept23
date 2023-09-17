@@ -1,0 +1,117 @@
+import boto3
+from datetime import datetime, timedelta
+import time
+import pymysql
+
+def run():
+    client = boto3.client('rds')
+    
+    original_cluster_id = 'your-original-cluster-id'
+    new_cluster_id = 'your-new-cluster-id'
+    database_name = 'complex_schema_db'
+    restore_time = datetime.utcnow() - timedelta(minutes=5)
+    
+    # Step 1: Create a complex schema in the original cluster and insert data
+    conn = pymysql.connect(
+        host='your-cluster-endpoint',
+        user='your-username',
+        password='your-password'
+    )
+    
+    cursor = conn.cursor()
+    cursor.execute(f"CREATE DATABASE IF NOT EXISTS {database_name}")
+    cursor.execute(f"USE {database_name}")
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS complex_table1 (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255),
+            age INT,
+            created_at DATETIME
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS complex_table2 (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            address VARCHAR(255),
+            postal_code VARCHAR(10),
+            table1_id INT,
+            FOREIGN KEY (table1_id) REFERENCES complex_table1(id)
+        )
+    """)
+    
+    cursor.execute("""
+        INSERT INTO complex_table1 (name, age, created_at) VALUES 
+        ('Alice', 30, '2023-01-01 10:00:00'), 
+        ('Bob', 25, '2023-02-01 11:00:00')
+    """)
+    
+    cursor.execute("""
+        INSERT INTO complex_table2 (address, postal_code, table1_id) VALUES 
+        ('123 Main St', '12345', 1), 
+        ('456 Elm St', '67890', 2)
+    """)
+    
+    conn.commit()
+    
+    # Step 2: Initiate a point-in-time restore to create a new cluster
+    client.restore_db_cluster_to_point_in_time(
+        DBClusterIdentifier=new_cluster_id,
+        SourceDBClusterIdentifier=original_cluster_id,
+        RestoreToTime=restore_time,
+        UseLatestRestorableTime=True,
+        Engine='aurora'
+    )
+
+    # Waiting for the new cluster to be available
+    print("Waiting for new cluster to be available...")
+    while True:
+        response = client.describe_db_clusters(DBClusterIdentifier=new_cluster_id)
+        if response['DBClusters'][0]['Status'] == 'available':
+            break
+        time.sleep(60)
+    
+    # Step 3: Compare the data in the new database with that in the original database
+    new_conn = pymysql.connect(
+        host='your-new-cluster-endpoint',
+        user='your-username',
+        password='your-password'
+    )
+    
+    new_cursor = new_conn.cursor()
+    new_cursor.execute(f"USE {database_name}")
+    
+    cursor.execute("SELECT * FROM complex_table1")
+    original_data_table1 = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM complex_table2")
+    original_data_table2 = cursor.fetchall()
+    
+    new_cursor.execute("SELECT * FROM complex_table1")
+    new_data_table1 = new_cursor.fetchall()
+    
+    new_cursor.execute("SELECT * FROM complex_table2")
+    new_data_table2 = new_cursor.fetchall()
+    
+    data_consistent = original_data_table1 == new_data_table1 and original_data_table2 == new_data_table2
+    
+    if data_consistent:
+        print("Data Consistency Test: Test Passed!")
+    else:
+        print("Data Consistency Test: Test Failed!")
+    
+    # Step 4: Cleanup
+    cursor.execute(f"DROP DATABASE {database_name}")
+    conn.close()
+    
+    client.delete_db_cluster(
+        DBClusterIdentifier=new_cluster_id,
+        SkipFinalSnapshot=True
+    )
+
+    new_conn.close()
+
+# Call the run function to execute the test
+if __name__ == "__main__":
+    run()
