@@ -1,0 +1,24 @@
+# targets are individual python files 
+
+from threading import Thread
+from parameter_and_settings_preservation_test import run as parameter_and_settings_preservation_test
+from resource_cleanup_test import run as resource_cleanup_test
+
+def run_tests_concurrently():
+    # Create threads for each test
+    thread1 = Thread(target=parameter_and_settings_preservation_test)
+    thread2 = Thread(target=resource_cleanup_test)
+
+    # Start the threads
+    thread1.start()
+    thread2.start()
+
+    # Wait for both threads to finish
+    thread1.join()
+    thread2.join()
+
+    print("All tests finished.")
+
+# Run the tests
+if __name__ == "__main__":
+    run_tests_concurrently()
