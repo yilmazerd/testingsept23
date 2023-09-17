@@ -1,0 +1,113 @@
+import boto3
+from datetime import datetime, timedelta
+import time
+import pymysql
+
+def run():
+    client = boto3.client('rds')
+    rds_data_client = boto3.client('rds-data')
+    
+    original_cluster_id = 'your-original-cluster-id'
+    new_cluster_id = 'your-new-cluster-id'
+    database_name = 'complex_schema_db'
+    restore_time = datetime.utcnow() - timedelta(minutes=5)
+    
+    # Step 1: Create a complex schema in the original cluster
+    conn = pymysql.connect(
+        host='your-cluster-endpoint',
+        user='your-username',
+        password='your-password'
+    )
+    
+    cursor = conn.cursor()
+    cursor.execute(f"CREATE DATABASE {database_name}")
+    cursor.execute(f"USE {database_name}")
+    
+    cursor.execute("""
+        CREATE TABLE complex_table1 (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255),
+            age INT,
+            created_at DATETIME
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE complex_table2 (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            address VARCHAR(255),
+            postal_code VARCHAR(10),
+            table1_id INT,
+            FOREIGN KEY (table1_id) REFERENCES complex_table1(id)
+        )
+    """)
+    
+    # Step 2: Initiate a point-in-time restore to create a new cluster
+    client.restore_db_cluster_to_point_in_time(
+        DBClusterIdentifier=new_cluster_id,
+        SourceDBClusterIdentifier=original_cluster_id,
+        RestoreToTime=restore_time,
+        UseLatestRestorableTime=True,
+        Engine='aurora'
+    )
+
+    # Waiting for the new cluster to be available
+    print("Waiting for new cluster to be available...")
+    while True:
+        response = client.describe_db_clusters(DBClusterIdentifier=new_cluster_id)
+        if response['DBClusters'][0]['Status'] == 'available':
+            break
+        time.sleep(60)
+    
+    # Step 3: Compare the schema of the new database with that of the original database
+    new_conn = pymysql.connect(
+        host='your-new-cluster-endpoint',
+        user='your-username',
+        password='your-password'
+    )
+    
+    new_cursor = new_conn.cursor()
+    new_cursor.execute(f"USE {database_name}")
+    
+    cursor.execute("SHOW TABLES")
+    original_tables = cursor.fetchall()
+    
+    new_cursor.execute("SHOW TABLES")
+    new_tables = new_cursor.fetchall()
+    
+    schema_consistent = True
+    
+    if original_tables == new_tables:
+        for table in original_tables:
+            table_name = table[0]
+            cursor.execute(f"SHOW CREATE TABLE {table_name}")
+            original_table_schema = cursor.fetchall()
+            
+            new_cursor.execute(f"SHOW CREATE TABLE {table_name}")
+            new_table_schema = new_cursor.fetchall()
+            
+            if original_table_schema != new_table_schema:
+                schema_consistent = False
+                break
+    else:
+        schema_consistent = False
+    
+    if schema_consistent:
+        print("Database Schema Consistency Test: Test Passed!")
+    else:
+        print("Database Schema Consistency Test: Test Failed!")
+    
+    # Step 4: Cleanup
+    cursor.execute(f"DROP DATABASE {database_name}")
+    conn.close()
+    
+    client.delete_db_cluster(
+        DBClusterIdentifier=new_cluster_id,
+        SkipFinalSnapshot=True
+    )
+
+    new_conn.close()
+
+# Call the run function to execute the test
+if __name__ == "__main__":
+    run()
