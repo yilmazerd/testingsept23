@@ -1,0 +1,37 @@
+Retention Period Setting Verification Tests List
+
+Verify that the retention period can be set to a valid range (1 to 35 days) without any errors.
+Verify that setting a retention period outside the valid range (less than 1 day or more than 35 days) results in an appropriate error message.
+Point-in-Time Restore Within Retention Period
+
+Create data backups and perform point-in-time restores within the defined retention period to ensure successful restoration.
+Point-in-Time Restore Outside Retention Period
+
+Attempt a point-in-time restore beyond the defined retention period and validate that it fails with an appropriate error message.
+Retention Period Adjustment Impact
+
+Adjust the retention period settings (both increasing and decreasing) and verify that point-in-time restore functionality adheres to the new retention period setting.
+Automated Backup Deletion
+
+Verify that automated backups are automatically deleted after the retention period has elapsed, and cannot be restored.
+Data Consistency After Restore
+
+Perform a point-in-time restore within the retention period and verify the data consistency and integrity of the restored database with the source database at the point of the restore time.
+Restoration Across Different Retention Period Settings
+
+Change the retention period settings multiple times and perform point-in-time restores to various points within different retention periods to ensure consistent functionality.
+Billing and Usage
+
+Verify that storage usage and billing accurately reflect the changes made to the retention period settings.
+Restoration During Retention Period Change
+
+Initiate a point-in-time restore while simultaneously changing the retention period settings, and validate the impact (if any) on the restore process.
+Event Logging and Monitoring
+
+Verify that all point-in-time restore events (successful or failed) are correctly logged and can be monitored through the AWS Management Console or AWS CloudWatch, especially concerning retention period settings and changes.
+Retaining Snapshots Beyond Retention Period
+
+Verify the functionality and limitations of manual snapshots for retaining data backups beyond the automated backup retention period.
+Impact on Snapshots
+
+Verify that changing the retention period does not inadvertently delete manual snapshots created during the previous retention period settings.
