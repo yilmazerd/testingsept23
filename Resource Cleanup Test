@@ -1,0 +1,56 @@
+import boto3
+from datetime import datetime, timedelta
+import time
+
+# Initialize a session using Amazon RDS
+client = boto3.client('rds')
+
+# Function to get the list of resources (DB clusters, snapshots, etc.)
+def list_resources():
+    clusters = client.describe_db_clusters()['DBClusters']
+    snapshots = client.describe_db_cluster_snapshots()['DBClusterSnapshots']
+    return clusters, snapshots
+
+# Step 1: List all resources before the restoration
+clusters_before, snapshots_before = list_resources()
+
+# Step 2: Initiating a RestoreDBClusterToPointInTime
+original_cluster_id = 'your-original-cluster-id'
+restore_time = datetime.utcnow() - timedelta(minutes=5)
+new_cluster_id = 'your-new-cluster-id'
+
+client.restore_db_cluster_to_point_in_time(
+    DBClusterIdentifier=new_cluster_id,
+    SourceDBClusterIdentifier=original_cluster_id,
+    RestoreToTime=restore_time,
+    UseLatestRestorableTime=True,
+    Engine='aurora'
+)
+
+# Waiting for the new cluster to be available
+print("Waiting for new cluster to be available...")
+while True:
+    response = client.describe_db_clusters(DBClusterIdentifier=new_cluster_id)
+    if response['DBClusters'][0]['Status'] == 'available':
+        break
+    time.sleep(60)
+
+# Step 3: List all resources after the restoration
+clusters_after, snapshots_after = list_resources()
+
+# Step 4: Compare the resources before and after to detect any that weren't cleaned up
+new_clusters = [cluster for cluster in clusters_after if cluster not in clusters_before]
+new_snapshots = [snapshot for snapshot in snapshots_after if snapshot not in snapshots_before]
+
+if not new_clusters and not new_snapshots:
+    print("Resource Cleanup Test: Test Passed!")
+else:
+    print("Resource Cleanup Test: Test Failed!")
+    print("New Clusters: ", new_clusters)
+    print("New Snapshots: ", new_snapshots)
+
+# Step 5: Cleanup - Delete the new cluster
+client.delete_db_cluster(
+    DBClusterIdentifier=new_cluster_id,
+    SkipFinalSnapshot=True
+)
