@@ -1,0 +1,62 @@
+import boto3
+import pymysql
+from datetime import datetime, timedelta
+import time
+
+# Initialize a session using Amazon RDS
+client = boto3.client('rds')
+
+# Step 1: Connect to the existing Aurora cluster and create a table
+conn = pymysql.connect(host='YOUR_CLUSTER_ENDPOINT', user='YOUR_USERNAME', password='YOUR_PASSWORD', database='YOUR_DATABASE')
+cursor = conn.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS test_table (id INT AUTO_INCREMENT PRIMARY KEY, data VARCHAR(255))")
+cursor.execute("INSERT INTO test_table (data) VALUES ('TestData1'), ('TestData2')")
+conn.commit()
+
+# Record the time for point-in-time recovery (Note: Aurora backups are usually available with a few minutes delay)
+restore_time = datetime.utcnow() - timedelta(minutes=5)
+
+# Step 2: Initiate a point-in-time restore to create a new cluster
+new_cluster_id = 'new-test-cluster'
+client.restore_db_cluster_to_point_in_time(
+    DBClusterIdentifier=new_cluster_id,
+    SourceDBClusterIdentifier='YOUR_DB_CLUSTER_IDENTIFIER',
+    RestoreToTime=restore_time,
+    UseLatestRestorableTime=True,
+    Engine='aurora'
+)
+
+# Waiting for the new cluster to be available
+print("Waiting for new cluster to be available...")
+while True:
+    response = client.describe_db_clusters(DBClusterIdentifier=new_cluster_id)
+    if response['DBClusters'][0]['Status'] == 'available':
+        break
+    time.sleep(60)
+
+# Step 3: Connect to the new cluster and retrieve the data
+new_conn = pymysql.connect(host='YOUR_NEW_CLUSTER_ENDPOINT', user='YOUR_USERNAME', password='YOUR_PASSWORD', database='YOUR_DATABASE')
+new_cursor = new_conn.cursor()
+new_cursor.execute("SELECT * FROM test_table")
+
+# Step 4: Compare data between the old and the new cluster
+cursor.execute("SELECT * FROM test_table")
+original_data = cursor.fetchall()
+new_data = new_cursor.fetchall()
+
+if original_data == new_data:
+    print("Data match: Restoration was successful!")
+else:
+    print("Data mismatch: Restoration failed!")
+
+# Close connections
+cursor.close()
+conn.close()
+new_cursor.close()
+new_conn.close()
+
+# Cleanup: Delete the new cluster
+client.delete_db_cluster(
+    DBClusterIdentifier=new_cluster_id,
+    SkipFinalSnapshot=True
+)
