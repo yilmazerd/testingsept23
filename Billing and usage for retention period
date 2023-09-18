@@ -1,0 +1,59 @@
+# Change the retention period setting for a given DB cluster.
+# Use AWS Cost Explorer or similar services to fetch the billing details before and after the change.
+# Compare the fetched billing and storage data to ensure that they accurately reflect the changes made to the retention period settings.
+
+
+import boto3
+from datetime import datetime, timedelta
+
+# Initialize a session using Amazon RDS and AWS Cost Explorer
+rds_client = boto3.client('rds')
+cost_client = boto3.client('ce')
+
+# Define the DB cluster identifier and the retention periods for the test
+db_cluster_identifier = 'your-db-cluster-identifier'
+new_retention_period = 14  # You can set to a value between 1 and 35
+
+# Utility function to fetch the current billing data
+def get_billing_data(start_date, end_date):
+    try:
+        response = cost_client.get_cost_and_usage(
+            TimePeriod={
+                'Start': start_date,
+                'End': end_date
+            },
+            Granularity='DAILY',
+            Metrics=['UNBLENDED_COST']
+        )
+        return response['ResultsByTime']
+    except Exception as e:
+        print(f"An error occurred while fetching billing data: {e}")
+
+# Utility function to change the retention period
+def change_retention_period(db_cluster_identifier, new_retention_period):
+    try:
+        response = rds_client.modify_db_cluster(
+            DBClusterIdentifier=db_cluster_identifier,
+            BackupRetentionPeriod=new_retention_period
+        )
+        print("Retention period changed successfully.")
+    except Exception as e:
+        print(f"An error occurred while changing the retention period: {e}")
+
+# Main function to conduct the test
+if __name__ == "__main__":
+    # Step 1: Get the billing data before the change
+    end_date = datetime.now().strftime('%Y-%m-%d')
+    start_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    billing_data_before = get_billing_data(start_date, end_date)
+    
+    # Step 2: Change the retention period
+    change_retention_period(db_cluster_identifier, new_retention_period)
+    
+    # Step 3: Get the billing data after the change
+    # Note: You might want to introduce a delay here to allow the changes to propagate to the billing system
+    billing_data_after = get_billing_data(start_date, end_date)
+    
+    # Step 4: Compare the billing data before and after the change
+    # Here, add logic to compare `billing_data_before` and `billing_data_after` to verify the billing reflects the retention period change accurately.
+    # ...
