@@ -1,0 +1,33 @@
+If I delete all the daily backups, can i still do a point in time restore in aurora?
+
+In AWS Aurora, point-in-time restore functionality relies on the automated backups (snapshots and transaction logs) that AWS maintains. If you delete all the daily backups (snapshots), it will affect the ability to do a point-in-time restore, as follows:
+
+Loss of Snapshots: Once you delete the daily snapshots, the ability to restore the database to a state at the time of those deleted snapshots will be lost. You will not be able to use those snapshots for a point-in-time restore.
+
+Transaction Logs: AWS Aurora maintains transaction logs that record the changes to your database. These logs are stored for the duration of the backup retention period. Depending on how the logs are managed and retained in conjunction with the snapshots, there might be a possibility to perform a point-in-time restore within the retention period using these logs. However, this might not be feasible without any snapshots available, as the logs generally work in tandem with the snapshots to provide a point-in-time restore.
+
+Restoring to Latest Restorable Time: If you haven't deleted the most recent snapshot, you may still be able to perform a point-in-time restore to the latest restorable time. The "latest restorable time" is typically up to the last 5 minutes of changes (this could vary), and AWS maintains this information up until the backup retention period.
+
+Manual Snapshots: If you have manual snapshots (snapshots that you created manually, not the automated daily backups), those will not be deleted, and you can use them to restore the database. However, a point-in-time restore using manual snapshots would only allow restoring to the exact time when the snapshot was taken, not to any point in time.
+
+In general, it is recommended to maintain a strategy of regular automated backups and possibly complement it with manual snapshots to ensure you have the ability to restore your database to the desired point in time. If you decide to delete daily backups, be aware of the potential loss in the ability to restore to specific points in time.
+
+
+
+
+How does earliest restorage time get calculated for aws aurora?
+
+The "earliest restorable time" for an Amazon Aurora database is determined based on the backup retention policy and the availability of backups (snapshots) and transaction logs. Here is how it's generally calculated:
+
+Backup Retention Period: The backup retention policy defines how long automated backups (both snapshots and transaction logs) are retained by AWS. The earliest restorable time will be constrained by this period; typically, it can't be earlier than the oldest available backup according to the retention policy.
+
+Snapshot and Transaction Logs Availability: Amazon Aurora maintains automatic backups by taking regular snapshots of your database and recording transaction logs to track changes between snapshots. The earliest restorable time is usually calculated based on the oldest available snapshot in conjunction with the associated transaction logs.
+
+Continuous Backups: Aurora continually backs up your database to Amazon S3, which enables restoration to any point within the backup retention period. This contrasts with traditional database systems where backups might only be taken daily or weekly. The transaction logs play a crucial role in enabling this capability by allowing you to restore to any point in the backup retention period, down to a granularity of a few minutes.
+
+Cluster Volume Tracking: In Aurora, the data volume is divided into 10 GB segments spread across many disks. Each 10 GB chunk of your database volume can be backed up in parallel, providing enhanced backup performance and making the restore process faster and more flexible. This mechanism contributes to determining the earliest possible point to which a restore can be performed.
+
+So, in essence, the earliest restorable time would be a point in time where Aurora has a consistent snapshot of the database along with all necessary transaction logs available to restore the database to that point. This will depend on your database's specific backup strategy and retention policy, but it generally falls within the backup retention period configured for your Aurora DB cluster.
+
+Remember that the actual mechanics might vary, and AWS might implement further optimizations and strategies to calculate and determine the "earliest restorable time." It's always a good idea to refer to the latest AWS documentation or support resources for the most current information.
+
