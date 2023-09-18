@@ -24,6 +24,19 @@
 	.	How can you secure data in Amazon S3? Can you describe features like bucket policies,  IAM Policies, S3 Encryption 
 	.	Can you describe how to improve performance in S3? 
 	.	How does S3 pricing work?
- 
+
+
+	.	What is Amazon Aurora? Can you describe its main features and benefits? 
+	.	Can you compare Amazon Aurora with traditional relational databases like MySQL and PostgreSQL? 
+	.	How does Amazon Aurora ensure high availability and durability? 
+	.	What are Aurora Replicas? How do they differ from Amazon RDS Read Replicas? 
+	.	Can you explain the difference between Aurora Serverless and provisioned Aurora? When would you use each one? 
+	.	How does Amazon Aurora handle backups and restore? 
+	.	How does Amazon Aurora handle database failover? What does it mean to promote read replica?
+	.	
+	.	Can you explain the cost structure of Amazon Aurora? What are the factors that contribute to the total cost of running an Aurora database?
+
+
+
 
 
