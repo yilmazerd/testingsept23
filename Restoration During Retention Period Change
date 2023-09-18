@@ -1,0 +1,52 @@
+# Initiates a change in the backup retention period.
+# Simultaneously initiates a point-in-time restore.
+# Validates the impact (if any) on the restore process.
+
+import boto3
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+import time
+
+# Initialize a session using Amazon RDS
+client = boto3.client('rds')
+
+# Define the DB cluster identifier and the retention periods for the test
+db_cluster_identifier = 'your-db-cluster-identifier'
+new_retention_period = 14  # You can set to a value between 1 and 35
+restore_time = '2023-09-15T00:00:00Z'  # Specify a valid restore time
+
+def change_retention_period(db_cluster_identifier, new_retention_period):
+    try:
+        response = client.modify_db_cluster(
+            DBClusterIdentifier=db_cluster_identifier,
+            BackupRetentionPeriod=new_retention_period,
+            ApplyImmediately=True
+        )
+        print("Retention period changed successfully.")
+    except Exception as e:
+        print(f"An error occurred while changing the retention period: {e}")
+
+def point_in_time_restore(db_cluster_identifier, restore_time):
+    try:
+        response = client.restore_db_cluster_to_point_in_time(
+            SourceDBClusterIdentifier=db_cluster_identifier,
+            DBClusterIdentifier='restored-db-cluster',
+            RestoreToTime=restore_time,
+            UseLatestRestorableTime=False,
+        )
+        print("Point-in-time restore initiated successfully.")
+    except Exception as e:
+        print(f"An error occurred during the point-in-time restore: {e}")
+
+# Execute both functions simultaneously to perform the test
+if __name__ == "__main__":
+    try:
+        # Change retention period
+        change_retention_period(db_cluster_identifier, new_retention_period)
+
+        # Simultaneously initiate a point-in-time restore
+        point_in_time_restore(db_cluster_identifier, restore_time)
+
+        # Note: In a real-world scenario, you might want to include additional logic
+        # to check the status of the restore operation and validate the impact of the retention period change
+    except (NoCredentialsError, PartialCredentialsError):
+        print("No credentials available to access AWS services. Please configure AWS CLI with the necessary credentials.")
