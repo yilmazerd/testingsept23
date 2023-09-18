@@ -1,0 +1,18 @@
+	.	Describe DynamoDB
+	.	You should be able to describe dynamodB as a fully managed, nosql database service and that it is known for low latency, scalability, and flexibility etc 
+	.	Describe key components of dynamodB?
+	.	Understanding terms like tables, items, attributes, primary keys (partition key and sort key), secondary indexes (Global Secondary Index and Local Secondary Index) is important. 
+	.	What are read consistencies supported in DynamoDB?
+	.	DynamoDB provides two types of read consistency: Eventually Consistent Reads and Strongly Consistent Reads. Understanding the difference between these two is important. 
+	.	How is data stored and retrieved in DynamoDB?
+	.	You should be able to explain how the primary key (partition key or composite primary key - partition key and sort key) impacts data distribution and retrieval. 
+	.	        Can you explain the circumstances under which throttling might occur in DynamoDB, and how it can be monitored and mitigated? What does throttling mean in the context of DynamoDB?
+	.	How does it impact the performance of read and write operations? What are the main causes of throttling in DynamoDB? Can we do something to help throttling cases by changing access patterns?
+	.	
+
+	.	What is DynamoDB Transactions?
+	.	It's important to know how DynamoDB supports ACID transactions and when to use transactional read and write API calls. 
+	.	What are some common use cases for DynamoDB?
+	.	Discussing some examples where DynamoDB is an optimal solution, like real-time bidding, mobile gaming, IoT, etc., will showcase your understanding of its practical applications. 
+	.	What is the cost structure of DynamoDB?
+	.	Being able to explain how DynamoDB's pricing works, based on provisioned throughput, storage, data transfer, and optional features like DAX or backup and restore, will be valuable. 
