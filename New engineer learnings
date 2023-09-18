@@ -16,3 +16,14 @@
 	.	Discussing some examples where DynamoDB is an optimal solution, like real-time bidding, mobile gaming, IoT, etc., will showcase your understanding of its practical applications. 
 	.	What is the cost structure of DynamoDB?
 	.	Being able to explain how DynamoDB's pricing works, based on provisioned throughput, storage, data transfer, and optional features like DAX or backup and restore, will be valuable. 
+
+
+	.	What is Amazon S3? Can you explain its main features and benefits? 
+	.	Can you explain the S3 storage classes? What are the use-cases, performance, and costs associated with each class? 
+	.	What are S3 Buckets and Objects? How does the S3 data model work? 
+	.	How can you secure data in Amazon S3? Can you describe features like bucket policies,  IAM Policies, S3 Encryption 
+	.	Can you describe how to improve performance in S3? 
+	.	How does S3 pricing work?
+ 
+
+
