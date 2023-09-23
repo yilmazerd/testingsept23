@@ -1,0 +1,30 @@
+    # Create a sample table named 'employees'
+    cursor.execute("""
+    CREATE TABLE employees (
+        id SERIAL PRIMARY KEY,
+        first_name VARCHAR(50),
+        last_name VARCHAR(50),
+        age INT,
+        department VARCHAR(50)
+    )
+    """)
+
+    # Insert sample records into the 'employees' table
+    sample_data = [
+        ('John', 'Doe', 30, 'Engineering'),
+        ('Jane', 'Smith', 25, 'Sales'),
+        ('Robert', 'Johnson', 35, 'Finance')
+    ]
+
+    for record in sample_data:
+        cursor.execute("""
+        INSERT INTO employees (first_name, last_name, age, department)
+        VALUES (%s, %s, %s, %s)
+        """, record)
+
+
+#confirm
+cur.execute("SELECT * FROM employees")
+rows = cur.fetchall()
+for row in rows:
+    print(row)
