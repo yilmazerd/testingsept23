@@ -6,7 +6,7 @@ Snapshot Management:
 •	As a customer, I want to share my snapshots with other AWS accounts to collaborate and share data securely and efficiently.
 
 Snapshot Security and Compliance:
-•	As a customer, I want to ensure that my snapshots are encrypted with the specified keys
+•	As a customer, I want to ensure that my snapshots are encrypted with the specified keys. I want to make sure my encrypted snapshots can be restored successfully.
 •	As a customer, I want to define and manage my snapshot retention policies. I want to make sure that my backup retention schedules are automatically maintained according to my needs.
 
 Snapshot Performance and Integrity:
