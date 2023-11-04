@@ -1,35 +1,28 @@
-List for snapshot tests
+Snapshot Management:
+•	As a customer, I want my snapshots to be created successfully without any errors and contain all the necessary data so that I am assured of reliable backups.
+•	As a customer, I need to be able to delete snapshots to manage my storage costs and ensure that once deleted, the snapshots are irretrievable for data security.
+•	As a customer, I want to set up automatic snapshots so that they are created at specific intervals, ensuring my data backup process is timely and consistent.
+•	As a customer, I want to be able to copy snapshots successfully across regions to manage geographic redundancy and data availability.
+•	As a customer, I want to share my snapshots with other AWS accounts to collaborate and share data securely and efficiently.
 
-Snapshot Creation Test: Verify that snapshots are created successfully without any errors and contain all the necessary data.
+Snapshot Security and Compliance:
+•	As a customer, I want to ensure that my snapshots are encrypted with the specified keys
+•	As a customer, I want to define and manage my snapshot retention policies. I want to make sure that my backup retention schedules are automatically maintained according to my needs.
 
-Snapshot Restoration Test: Test to ensure that data can be successfully restored from a snapshot, and the data matches the source.
+Snapshot Performance and Integrity:
+•	As a customer, I expect the creation and restoration of snapshots to meet performance requirements, minimizing downtime and service interruption.
+•	As a customer, I want to verify that the integrity of my snapshots is maintained, ensuring that after restoration, my data is not corrupted and retains its original quality.
+•	As a customer, I expect restored snapshots to maintain data consistency, including schema and actual data, so that I can trust the backups are a true reflection of my original dataset.
 
-Snapshot Deletion Test: Verify that snapshots can be deleted successfully, and once deleted, they cannot be restored or accessed.
+Snapshot Monitoring and Maintenance:
+•	As a customer, I want to be able to monitor and log snapshot events accurately to maintain oversight of my backup processes through AWS CloudWatch.
+•	As a customer, I need to confirm that the size and storage consumption of my snapshots are accurate and efficient, ensuring I'm not using more resources than necessary.
+•	As a customer, I expect snapshot billing to reflect actual usage so that I can manage my expenses effectively.
 
-Automatic Snapshot Setup Test: Verify that automatic snapshots are set up correctly and are being created at the specified intervals.
+Snapshot Limitations and Compatibility:
+•	As a customer, I need to know the limits on snapshot creation per region and receive appropriate error messages when these limits are exceeded to manage my backup strategy within AWS constraints.
+•	As a customer, I want to ensure compatibility of snapshots across different versions of Aurora, confirming that snapshots from older versions are restorable in newer versions without issues.
 
-Snapshot Encryption Test: Test to ensure that snapshots are encrypted correctly using the specified encryption keys and that data cannot be accessed without the correct keys.
+Snapshot Accessibility and Usability:
+•	As a customer, I want an easy-to-use interface to manage my snapshots, including clear options for creation, restoration, and deletion, to streamline my workflow and reduce the need for extensive technical support.
 
-Cross-Region Snapshot Copy Test: Verify that snapshots can be copied successfully across regions and that data remains consistent.
-
-Snapshot Sharing Test: Test to ensure that snapshots can be shared with other AWS accounts and that data can be accessed from the shared account.
-
-Snapshot Performance Test: Measure the time taken to create and restore snapshots, and verify that it meets your performance requirements.
-
-Snapshot Size and Storage Test: Verify that the size of the snapshots is consistent with the size of the data in the database and that snapshots are not consuming more storage than necessary.
-
-Snapshot Metadata Test: Verify that snapshots contain all the necessary metadata, including the creation time, source database information, etc.
-
-Snapshot Integrity Test: Verify the integrity of the snapshots by restoring them and then running data validation tests to ensure that no data has been corrupted.
-
-Data Consistency Test on Restored Snapshot: Verify that the schema and data remain consistent when restored from a snapshot.
-
-Snapshot Limits Test: Verify that the maximum limit of snapshots per region is enforced and that appropriate error messages are displayed when the limit is exceeded.
-
-Snapshot Billing Test: Verify that billing for snapshot storage is accurate and corresponds to the actual usage.
-
-Snapshot Monitoring and Logging Test: Verify that snapshot creation, restoration, and deletion events are correctly logged and can be monitored through AWS CloudWatch.
-
-Snapshot Compliance Test: Verify that snapshot creation and retention comply with any applicable regulatory or organizational policies.
-
-Snapshot Upgrade Compatibility Test: Ensure that snapshots created in older versions of Aurora can be restored successfully in newer versions.
