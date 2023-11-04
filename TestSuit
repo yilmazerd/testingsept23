@@ -1,0 +1,232 @@
+# myCode.py
+import argparse
+import json
+import psycopg2
+import subprocess
+import sys
+import time
+
+# Deals with parsing input arguments
+class RuntimeConfig:
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(description="Process some parameters.")
+        self.define_default_arguments()
+
+    def define_default_arguments(self):
+        self.parser.add_argument("--clusterIdentifier", type=str, required=True,
+                                 help="The identifier for the Aurora cluster")
+        self.parser.add_argument("--testType", type=str, choices=['runLoad'], default='runLoad',
+                                 help="The type of test to run")
+        self.parser.add_argument("--iterations", type=int, default=100,
+                                 help="The number of iterations to run for data insertion")
+
+    def parse_arguments(self):
+        return self.parser.parse_args()
+
+# Command execution utility class
+class CommandRunner:
+    @staticmethod
+    def run_command(command):
+        try:
+            result = subprocess.run(
+                command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            print(f"Command succeeded with response: {result.stdout}")
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with error: {e.stderr}", file=sys.stderr)
+            sys.exit(1)
+
+
+# Deals with Aurora cluster operations
+class AuroraCluster:
+    def __init__(self, runner):
+        self.runner = runner
+
+    def check_cluster_exists(self, cluster_id):
+        # Check if the cluster already exists and return True/False accordingly
+        try:
+            result = self.runner.run_command(f"aws rds describe-db-clusters --db-cluster-identifier {cluster_id}")
+            return True  # If cluster exists
+        except subprocess.CalledProcessError as e:
+            return False  # If cluster does not exist
+
+    def create_cluster(self, cluster_id):
+        if not self.check_cluster_exists(cluster_id):
+            command = (f"aws rds create-db-cluster --db-cluster-identifier {cluster_id} "
+                       f"--engine aurora-postgresql --engine-version 15.2 --master-username postgres "
+                       f"--master-user-password postgres " 
+                       f"--db-cluster-parameter-group-name default.aurora-postgresql15")
+            self.runner.run_command(command)
+            print(f"Cluster '{cluster_id}' creation initiated.")
+        else:
+            print(f"Cluster '{cluster_id}' already exists.")
+
+    def check_instance_exists(self, cluster_id, instance_id):
+        # Check if the DB instance for the cluster already exists and return True/False accordingly
+        try:
+            result = self.runner.run_command(f"aws rds describe-db-instances --db-instance-identifier {instance_id}")
+            return True  # If instance exists
+        except subprocess.CalledProcessError as e:
+            # Handle the case where the instance does not exist and the command returns an error
+            return False  
+
+    def create_instance(self, cluster_id):
+        instance_id = f"{cluster_id}-instance"
+        if not self.check_instance_exists(cluster_id, instance_id):
+            command = (f"aws rds create-db-instance --db-instance-identifier {instance_id} "
+                       f"--db-cluster-identifier {cluster_id} --publicly-accessible "
+                       f"--engine aurora-postgresql --db-instance-class db.r5.large")
+            self.runner.run_command(command)
+            print(f"Instance '{instance_id}' creation initiated.")
+        else:
+            print(f"Instance '{instance_id}' already exists.")
+
+
+    def get_endpoint(self, cluster_id):
+        # Loop until the cluster's status is 'available'
+        while True:
+            command = (f"aws rds describe-db-clusters --db-cluster-identifier {cluster_id} "
+                       f"--query 'DBClusters[0].Status' --output text")
+            status = self.runner.run_command(command)
+
+            if status == 'available':
+                break
+            elif "failed" in status.lower() or "inaccessible" in status.lower():
+                raise Exception(f"Cluster status is {status}, cannot proceed to get endpoint.")
+
+            print("Waiting for cluster to become available...")
+            time.sleep(10)  # Sleep for a while before the next check to avoid hitting the API rate limit
+
+        # Once available, retrieve the endpoint
+        command = (f"aws rds describe-db-clusters --db-cluster-identifier {cluster_id} "
+                   f"--query 'DBClusters[0].Endpoint' --output text")
+        endpoint = self.runner.run_command(command)
+        return endpoint
+
+# PostgreSQL Database operations
+class PostgresDB:
+    def __init__(self, instance_endpoint):
+        self.instance_endpoint = instance_endpoint
+        self.connect()  # Establish connection upon initialization
+
+    def connect(self):
+        self.connection = psycopg2.connect(
+            dbname="postgres",
+            user="postgres",
+            password="postgres",
+            host=self.instance_endpoint,
+            port="5432",
+        )
+
+    def create_sample_table(self):
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                """CREATE TABLE IF NOT EXISTS books (
+                bookId INT PRIMARY KEY,
+                bookName CHAR(1000)
+                )"""
+            )
+        self.connection.commit()  
+
+    def insert_sample_data(self, iterations=1, threads=1):
+        def insert_data_chunk(thread_id, iteration_chunk):
+            # Establish a new connection for each thread to avoid sharing connections between threads
+            conn = psycopg2.connect(
+                dbname="postgres",
+                user="postgres",
+                password="postgres",
+                host=self.instance_endpoint,
+                port="5432",
+            )
+            with conn.cursor() as cursor:
+                for iteration in iteration_chunk:
+                    insert_query = f"""
+                    INSERT INTO books (bookId, bookName)
+                    SELECT 
+                        (generate_series + (10000 * ({iteration} - 1))) as bookId, 
+                        RPAD('A', 990, 'A') as bookName
+                    FROM generate_series(1,10000);
+                    """
+                    try:
+                        cursor.execute(insert_query)
+                        conn.commit()
+                        print(f"Thread {thread_id} completed insertion for iteration {iteration}.")
+                    except Exception as e:
+                        conn.rollback()  # Rollback the transaction on error
+                        print(f"Thread {thread_id} error occurred during insertion for iteration {iteration}: {e}")
+                    # No sleep here; it is typically not useful to sleep a thread during such batch operations.
+
+            conn.close()
+
+        # Split iterations into chunks, one for each thread
+        iteration_chunks = [[i for i in range(start, start + iterations // threads)] for start in 
+                            range(1, iterations + 1, iterations // threads)]
+
+        threads_list = []
+        for thread_id in range(threads):
+            # Passing the chunk of iterations to each thread
+            thread = threading.Thread(target=insert_data_chunk, args=(thread_id, iteration_chunks[thread_id]))
+            threads_list.append(thread)
+            thread.start()
+
+        for thread in threads_list:
+            thread.join()  # Wait for all threads to complete
+
+    def close(self):
+        if self.connection:
+            self.connection.close()
+
+
+# Example handler for load runner test
+# If we add a new test define another handler class and add key-value for handler_mapping to handle that 
+class LoadRunnerHandler:
+    def __init__(self, cluster_id):
+        self.runner = CommandRunner()
+        self.cluster = AuroraCluster(self.runner)
+        self.cluster_id = cluster_id
+
+    def run(self, iterations):
+        self.cluster.create_cluster(self.cluster_id)
+        self.cluster.create_instance(self.cluster_id)
+        endpoint = self.cluster.get_endpoint(self.cluster_id)
+        db = PostgresDB(endpoint)
+        db.create_sample_table()
+        db.insert_sample_data(iterations)
+        db.close()
+
+# Factory pattern using a dictionary for handler mapping
+# If we add a new tests we will define the parameter for the test as key and the method as value
+handler_mapping = {
+    "runLoad": LoadRunnerHandler
+}
+
+# Utility, should not need to change
+def get_handler_for_param(cluster_id, test_type):
+    handler_class = handler_mapping.get(test_type, None)
+    if not handler_class:
+        raise ValueError(f"Unknown test type: {test_type}")
+    return handler_class(cluster_id)
+
+# Main execution, most of the following should not need to change with new extension unless we add parameters
+if __name__ == "__main__":
+    config = RuntimeConfig() # Load utility, don't change this line
+    args = config.parse_arguments()  # Parse command line arguments, don't change this line
+
+    cluster_id = args.clusterIdentifier # Retrieve argument values, don't change
+    test_type = args.testType
+    iterations = args.iterations  
+
+    # Print parameters, don't change
+    print("Cluster Identifier is:", cluster_id)
+    print("Test Type is:", test_type)
+    print("Iterations:", iterations)
+
+    # Handle test types as we add new tests we can add new handlers but this section should not need to change
+    try:
+        handler = get_handler_for_param(test_type)
+        handler.run(cluster_id, iterations)  # Assumes the handler's run method is defined to accept these parameters. Make sure to check args if you add new methods
+    except ValueError as e:
+        print(e)  # If the testType is not found in the handler_mapping, it will be caught here.
+
+
