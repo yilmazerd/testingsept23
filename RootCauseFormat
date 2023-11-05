@@ -1,0 +1,35 @@
+ROOT CAUSE FORMAT
+
+Root Cause
+Five Whys Analysis:
+1.	Why...?
+2.	Why...?
+3.	Why...?
+4.	Why...?
+5.	Why...?
+Supporting Evidence
+•	Provide data from logs, metrics, etc.
+•	Conclude Root Cause
+
+Current Mitigation
+•	Steps for immediate response if the incident recurs.
+
+Proposed Solution(s)
+•	Description of Fix:
+
+Testing and Validation
+•	Test Plan for the Solution:
+•	Considerations for Missing Tests:
+•	New Tests for Pipeline:
+
+Monitoring and Alerting Enhancements
+•	Requirement for New Metrics and Alarms:
+
+Documentation and Communication
+•	Updates to Documentation Required:
+•	Development of New SOP for Alarms:
+
+Appendix and References
+•	Logs, Code Snippets, and Detailed Information:
+
+
