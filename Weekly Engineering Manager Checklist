@@ -1,0 +1,51 @@
+Weekly Engineering Manager Checklist
+1. Projects Management
+1.1. Project Dashboards Review
+
+1.1.1. Verify that each project has an updated Jira dashboard.
+1.1.2. Check that all items on each Jira dashboard are assigned and have due dates.
+1.1.3. Ensure dashboards for all projects are linked to a central homepage for accessibility.
+1.1.3.1. Update homepage links on Google Docs if necessary.
+1.1.4. Review and update each project initiative’s status summary.
+1.1.5. Assess project risks and update mitigation plans.
+1.1.6. Monitor main delivery dates and align with project milestones.
+2. Team Development
+2.1. Growth Plan Oversight
+
+2.1.1. Confirm that each engineer has a current and clear growth plan documented.
+2.1.2. Schedule and conduct weekly 1:1 meetings with each engineer.
+2.1.2.1. Prepare specific feedback for each engineer prior to the 1:1 meeting.
+2.1.2.2. Discuss the engineer’s progress on their growth plan.
+2.1.2.3. Identify any support needed from your side to aid their growth.
+2.1.2.4. Encourage self-assessment and solicit feedback on their own growth perception.
+2.1.3. Review upcoming team scalability plans and align them with individual growth plans.
+3. General Administration
+3.1. Communication and Collaboration
+
+3.1.1. Send out a weekly update to the team, summarizing project statuses and key objectives.
+3.1.2. Review and address any blockers that teams or individual contributors have reported.
+3.1.3. Check in on the status of action items from previous team meetings or retrospectives.
+3.2. Resource Allocation and Productivity
+
+3.2.1. Analyze team workload and adjust assignments as necessary for balance and efficiency.
+3.2.2. Ensure that all necessary resources for project execution are in place and accessible.
+3.3. Learning and Development
+
+3.3.1. Identify potential training sessions or knowledge-sharing opportunities.
+3.3.2. Encourage sharing of tech talks, webinars, and relevant reading material.
+3.4. Health Metrics Review
+
+3.4.1. Check on code quality metrics, if applicable.
+3.4.2. Review system performance and reliability metrics.
+4. Personal Development
+4.1. Self-Reflection
+
+4.1.1. Reflect on your own management practices and areas for improvement.
+4.1.2. Update your personal development plan with any new skills or knowledge areas to focus on.
+4.2. Peer Networking
+
+4.2.1. Engage with fellow engineering managers or industry peers for best practice exchanges.
+4.3. Strategic Planning
+
+4.3.1. Allocate time for strategic planning and big picture thinking.
+4.3.2. Review industry trends and potential impacts on your team's work.
