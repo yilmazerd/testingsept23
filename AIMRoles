@@ -1,0 +1,15 @@
+What purpose IAM roles serve in AWS. What are their main uses?
+Can you describe how to create and manage IAM roles?
+How do you assign IAM roles to an EC2 instance? What happens when you do this?
+What does it mean to attach policies to IAM role? 
+How do permissions work in AWS? Can you talk about how IAM roles fit into this?
+Let's say you have an EC2 instance that needs to access objects in an S3 bucket. How do you grant the necessary S3 permissions to that EC2 instance?
+Explain the concept of IAM user. What's the difference between an IAM user and an IAM role?
+Explain the concept of IAM policies. How are they related to IAM roles?
+What are the main types of policies you can attach to an IAM role?
+How would you limit or manage permissions for a role?
+What does principle of least privilege mean? How does the principle of least privilege apply to IAM roles?
+What is the difference between trust policies and permission policies in AWS IAM roles? What are their purposes?
+Can you provide an example or use case for when you would use a cross-account role? 
+What does it mean to assume an IAM role? Can you explain the process to assume an IAM role from another AWS account? Why do you need this?
+How can IAM roles help manage temporary credentials?
