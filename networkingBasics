@@ -1,0 +1,27 @@
+What is a security group in AWS?
+What is a Elastic Network Interface in AWS?
+What is a Network Access Control List in AWS?
+What is the difference betweeen Network Access Control Lists (NACLs) and security Groups?
+What is the difference betweeen ENI and security groups?
+Can you use a security group as a firewall? If you can do that, how will that work?
+What rules can you specify in a security group? 
+How do inbound and outbound rules function in a security group?
+How many security groups can be associated with an EC2 instance?
+How do you create a security group?
+How do you add rules to a security group?
+Can you modify the rules of a security group associated with an instance while it's running?
+How would you go about troubleshooting connectivity issues related to security groups?
+How do you clone a security group in a different region or account?
+Are security groups stateful? What does the stateful nature of security Groups impact their behavior? 
+How do you remove a security group?
+Can you apply a security group to instances in a VPC?
+Can you apply more than one security group to a single EC2 instance? What happens if there are conflicting rules?
+What is the default security group, and what rules does it contain? Where is the default security group coming from? Why do we need it?
+Can you restrict security group access based on IP ranges? How do you do that?
+Can you specify allow rules in a security group? What about deny rules? What is the benefit of this?
+How does AWS handle rule evaluation when an instance belongs to multiple security Groups?
+Can an ENI be attached to multiple EC2 instances simultaneously? Can I detach ENI from one instance and then attached to another? What is the benefit of this?
+How do security groups work with ENIs in a VPC?
+Is it possible to change the security groups associated with an ENI after it is created?
+Can an ENI in one availability zone be attached to an EC2 instance in another availability zone?
+What happens to the default ENI of an EC2 instance if the instance is terminated?
